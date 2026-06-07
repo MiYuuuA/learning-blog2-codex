@@ -11,6 +11,7 @@ function EditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const saved = searchParams.get("saved");
+  const ghStatus = searchParams.get("gh");
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -18,8 +19,20 @@ function EditorContent() {
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(saved === "1" ? "笔记已保存！本地文件已更新，GitHub 同步中，稍后刷新即可查看。" : "");
+  const [success, setSuccess] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (saved === "1") {
+      if (ghStatus === "ok") {
+        setSuccess("已保存并同步到 GitHub！Vercel 重新部署后即可查看。");
+      } else if (ghStatus) {
+        setError(`GitHub 同步失败: ${decodeURIComponent(ghStatus)}`);
+      } else {
+        setSuccess("笔记已保存！");
+      }
+    }
+  }, [saved, ghStatus]);
 
   useEffect(() => {
     fetch("/api/notes").then(r => r.json()).then(d => {
@@ -37,10 +50,10 @@ function EditorContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title.trim(), category, tags: tags.split(",").map(t => t.trim()).filter(Boolean), content }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "保存失败"); }
       const data = await res.json();
-      const githubStatus = data.github === "已同步" ? "已同步到 GitHub" : `GitHub: ${data.github}`;
-      router.push(`/editor?saved=1`);
+      if (!res.ok) throw new Error(data.error || "保存失败");
+      const ghParam = data.github === "已同步" ? "ok" : encodeURIComponent(data.github || "unknown");
+      router.push(`/editor?saved=1&gh=${ghParam}`);
     } catch (err) { setError(err instanceof Error ? err.message : "保存失败"); }
     finally { setSaving(false); }
   };
