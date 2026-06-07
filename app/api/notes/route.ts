@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { saveNote, getAllNotes } from "@/lib/notes";
+import { saveNote, getAllNotes, NoteMeta } from "@/lib/notes";
 import { commitAndPush } from "@/lib/github";
 
-const CONTENT_DIR = path.join(process.cwd(), "content", "notes");
+const isVercel = !!process.env.VERCEL;
+
+function buildNoteContent(title: string, category: string, tags: string[], content: string, description?: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const frontmatter = [
+    "---",
+    `title: ${title}`,
+    `date: ${today}`,
+    `category: ${category}`,
+    `tags: [${tags.join(", ")}]`,
+    `description: ${description || ""}`,
+    "---",
+    "",
+  ].join("\n");
+  return frontmatter + content;
+}
+
+function makeSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,28 +41,29 @@ export async function POST(request: NextRequest) {
     const tagsArray = Array.isArray(tags)
       ? tags.filter((t: unknown) => typeof t === "string" && t.trim())
       : [];
+    const slug = makeSlug(title.trim());
+    const fullContent = buildNoteContent(title.trim(), category.trim(), tagsArray, content, description);
 
-    const result = saveNote({
-      title: title.trim(),
-      category: category.trim(),
-      tags: tagsArray,
-      content,
-      description: description || "",
-    });
+    // Local dev: write to filesystem
+    if (!isVercel) {
+      saveNote({
+        title: title.trim(),
+        category: category.trim(),
+        tags: tagsArray,
+        content,
+        description: description || "",
+      });
+    }
 
-    // GitHub CMS: auto commit + push
-    const fullPath = path.join(CONTENT_DIR, category.trim(), `${result.slug}.md`);
-    const raw = fs.readFileSync(fullPath, "utf-8");
-
+    // GitHub CMS: always commit
     const ghResult = await commitAndPush(
-      `content/notes/${category.trim()}/${result.slug}.md`,
-      raw,
+      `content/notes/${category.trim()}/${slug}.md`,
+      fullContent,
       `📝 ${title.trim()}`
     );
 
     return NextResponse.json({
-      slug: result.slug,
-      filePath: result.filePath,
+      slug,
       github: ghResult.success ? "已同步" : ghResult.error,
     });
   } catch (err) {
