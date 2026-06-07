@@ -1,0 +1,96 @@
+<h2>学习笔记 Blog — 系统架构</h2>
+<p class="subtitle">Next.js App Router + 文件系统 Markdown 存储</p>
+
+<div class="section">
+  <h3>整体架构</h3>
+  <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;font-family:monospace;font-size:13px;line-height:1.6">
+    <div style="background:#f0f4ff;border:1px solid #c4d4f0;border-radius:8px;padding:16px">
+      <strong style="color:#2563eb">📁 content/notes/</strong>
+      <div style="margin-left:20px;color:#4b5563">
+        ├── 编程/ <span style="color:#6b7280">← 分类目录</span><br>
+        │&nbsp;&nbsp; ├── react-advanced-patterns.md<br>
+        │&nbsp;&nbsp; └── rust-ownership.md<br>
+        ├── 语言/ <span style="color:#6b7280">← 分类目录</span><br>
+        │&nbsp;&nbsp; ├── japanese-n1-grammar.md<br>
+        │&nbsp;&nbsp; └── english-phrasal-verbs.md<br>
+        └── 课程/ <span style="color:#6b7280">← 分类目录</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp; └── cs61a-notes.md
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>一篇笔记长什么样</h3>
+  <div style="background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto">
+---<br>
+title: Rust 所有权深入理解<br>
+date: 2026-06-05<br>
+category: 编程<br>
+tags: [Rust, 系统编程, 内存管理]<br>
+description: 理解 Rust 的所有权模型和借用检查器<br>
+---<br>
+<br>
+## 所有权规则<br>
+<br>
+Rust 中每个值都有一个所有者...<br>
+<br>
+```rust<br>
+fn main() {<br>
+&nbsp;&nbsp;let s = String::from("hello");<br>
+&nbsp;&nbsp;takes_ownership(s);<br>
+}<br>
+```
+  </div>
+</div>
+
+<div class="section">
+  <h3>页面结构</h3>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>面向读者</h4>
+    <ul>
+      <li><strong>首页</strong> — 最新笔记列表、分类/标签云入口</li>
+      <li><strong>笔记详情页</strong> — Markdown 渲染、目录导航</li>
+      <li><strong>分类页</strong> — /category/编程 → 该分类下全部笔记</li>
+      <li><strong>标签页</strong> — /tag/Rust → 打该标签的笔记</li>
+    </ul>
+  </div>
+  <div class="cons"><h4>面向作者（你）</h4>
+    <ul>
+      <li><strong>编辑器页</strong> — 分栏 Markdown 编辑+预览</li>
+      <li>新建、编辑、保存到 content/notes/</li>
+      <li>选择分类、输入标签、写 frontmatter</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <h3>技术选型</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px 12px;font-weight:600">框架</td><td style="padding:8px 12px">Next.js 15 (App Router)</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px 12px;font-weight:600">Markdown 解析</td><td style="padding:8px 12px">gray-matter + react-markdown + rehype-highlight</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px 12px;font-weight:600">在线编辑器</td><td style="padding:8px 12px">@uiw/react-md-editor</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px 12px;font-weight:600">样式</td><td style="padding:8px 12px">Tailwind CSS</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px 12px;font-weight:600">存储</td><td style="padding:8px 12px">本地文件系统 (content/notes/)</td></tr>
+    <tr><td style="padding:8px 12px;font-weight:600">版本管理</td><td style="padding:8px 12px">Git</td></tr>
+  </table>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>架构没问题，继续</h3>
+      <p>这个结构和选型符合预期</p>
+    </div>
+  </div>
+  <div class="option" data-choice="adjust" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有些地方想改一下</p>
+    </div>
+  </div>
+</div>
