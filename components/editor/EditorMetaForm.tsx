@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface EditorMetaFormProps {
   title: string;
@@ -22,22 +22,35 @@ export function EditorMetaForm({
   categories,
 }: EditorMetaFormProps) {
   const [newCategory, setNewCategory] = useState("");
-  const isCreatingNew = category === "__new__";
+  const [showNewInput, setShowNewInput] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync showNewInput with category
+  useEffect(() => {
+    if (category === "__new__") {
+      setShowNewInput(true);
+      setNewCategory("");
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      setShowNewInput(false);
+    }
+  }, [category]);
 
   const handleCategoryChange = (value: string) => {
     if (value === "__new__") {
       setCategory("__new__");
-      setNewCategory("");
     } else {
       setCategory(value);
     }
   };
 
-  const handleNewCategoryBlur = () => {
-    if (newCategory.trim()) {
-      setCategory(newCategory.trim());
+  const commitNewCategory = () => {
+    const trimmed = newCategory.trim();
+    if (trimmed) {
+      setCategory(trimmed);
     } else {
       setCategory("");
+      setShowNewInput(false);
     }
   };
 
@@ -62,7 +75,7 @@ export function EditorMetaForm({
         }}
       />
       <select
-        value={isCreatingNew ? "__new__" : category}
+        value={showNewInput ? "__new__" : category}
         onChange={(e) => handleCategoryChange(e.target.value)}
         className="px-3 py-2 rounded text-sm border"
         style={{
@@ -79,16 +92,16 @@ export function EditorMetaForm({
         ))}
         <option value="__new__">+ 新建分类</option>
       </select>
-      {isCreatingNew && (
+      {showNewInput && (
         <input
+          ref={inputRef}
           type="text"
           value={newCategory}
           placeholder="新分类名称"
           onChange={(e) => setNewCategory(e.target.value)}
-          onBlur={handleNewCategoryBlur}
-          onKeyDown={(e) => { if (e.key === "Enter") handleNewCategoryBlur(); }}
+          onBlur={commitNewCategory}
+          onKeyDown={(e) => { if (e.key === "Enter") commitNewCategory(); }}
           className="px-3 py-2 rounded text-sm border"
-          autoFocus
           style={{
             backgroundColor: "var(--color-card-bg)",
             color: "var(--color-text)",
