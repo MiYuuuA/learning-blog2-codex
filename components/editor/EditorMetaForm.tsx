@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 interface EditorMetaFormProps {
   title: string;
@@ -25,7 +25,14 @@ export function EditorMetaForm({
   const [showNewInput, setShowNewInput] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync showNewInput with category
+  // Merge the committed new category into the options list so it shows in the select
+  const allCategories = useMemo(() => {
+    if (category && category !== "__new__" && !categories.includes(category)) {
+      return [category, ...categories];
+    }
+    return categories;
+  }, [categories, category]);
+
   useEffect(() => {
     if (category === "__new__") {
       setShowNewInput(true);
@@ -85,7 +92,7 @@ export function EditorMetaForm({
         }}
       >
         <option value="">选择分类</option>
-        {categories.map((c) => (
+        {allCategories.map((c) => (
           <option key={c} value={c}>
             {c}
           </option>
