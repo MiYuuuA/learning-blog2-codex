@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 interface EditorMetaFormProps {
   title: string;
   setTitle: (v: string) => void;
@@ -19,6 +21,26 @@ export function EditorMetaForm({
   setTags,
   categories,
 }: EditorMetaFormProps) {
+  const [newCategory, setNewCategory] = useState("");
+  const isCreatingNew = category === "__new__";
+
+  const handleCategoryChange = (value: string) => {
+    if (value === "__new__") {
+      setCategory("__new__");
+      setNewCategory("");
+    } else {
+      setCategory(value);
+    }
+  };
+
+  const handleNewCategoryBlur = () => {
+    if (newCategory.trim()) {
+      setCategory(newCategory.trim());
+    } else {
+      setCategory("");
+    }
+  };
+
   return (
     <div
       className="flex flex-wrap gap-3 p-4 rounded-lg mb-4"
@@ -40,8 +62,8 @@ export function EditorMetaForm({
         }}
       />
       <select
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        value={isCreatingNew ? "__new__" : category}
+        onChange={(e) => handleCategoryChange(e.target.value)}
         className="px-3 py-2 rounded text-sm border"
         style={{
           backgroundColor: "var(--color-card-bg)",
@@ -57,12 +79,16 @@ export function EditorMetaForm({
         ))}
         <option value="__new__">+ 新建分类</option>
       </select>
-      {category === "__new__" && (
+      {isCreatingNew && (
         <input
           type="text"
+          value={newCategory}
           placeholder="新分类名称"
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => setNewCategory(e.target.value)}
+          onBlur={handleNewCategoryBlur}
+          onKeyDown={(e) => { if (e.key === "Enter") handleNewCategoryBlur(); }}
           className="px-3 py-2 rounded text-sm border"
+          autoFocus
           style={{
             backgroundColor: "var(--color-card-bg)",
             color: "var(--color-text)",
